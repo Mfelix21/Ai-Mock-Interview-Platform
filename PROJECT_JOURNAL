@@ -1,0 +1,40 @@
+# AI Mock Interview Platform - Development Log
+
+## June 4, 2026
+
+### Goals
+
+* Set up project environment
+* Install React
+* Create frontend structure
+
+### Completed
+
+* Installed Node.js v24.16.0
+* Installed npm v11.13.0
+* Created project folder structure
+
+  * frontend/
+  * backend/
+* Initialized React project using Vite
+* Successfully launched local development server
+* Connected browser to localhost:5173
+
+### Challenges
+
+* npm command not found
+* Resolved by installing Node.js and adding it to PATH
+
+### What I Learned
+
+* Difference between Node.js and npm
+* Purpose of Git Bash
+* How Vite serves a React application locally
+* How localhost development servers work
+
+### Next Steps
+
+* Open project in VS Code
+* Modify App.jsx
+* Create landing page
+* Set up FastAPI backend
