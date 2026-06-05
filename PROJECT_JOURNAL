@@ -38,3 +38,30 @@
 * Modify App.jsx
 * Create landing page
 * Set up FastAPI backend
+
+
+## Progress Update June 5, 2026
+
+### Backend
+- Installed FastAPI and Uvicorn
+- Created root endpoint (/)
+- Created interview questions endpoint (/questions)
+- Configured CORS
+
+### Frontend
+- Installed Node.js
+- Started React/Vite application
+- Connected React frontend to FastAPI backend
+- Implemented fetch() API calls
+- Added responsive question card UI
+
+### Concepts Learned
+- REST APIs
+- JSON responses
+- React useState
+- React useEffect
+- Frontend-backend communication
+- CORS
+
+### Current Status
+React frontend successfully retrieves interview questions from FastAPI backend and displays them as responsive cards.

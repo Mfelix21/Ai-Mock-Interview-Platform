@@ -1,46 +1,31 @@
+import { useEffect, useState } from "react";
+import "./App.css";
+
 function App() {
+  const [questions, setQuestions] = useState([]);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/questions")
+      .then((response) => response.json())
+      .then((data) => setQuestions(data.questions))
+      .catch((error) => console.error(error));
+  }, []);
+
   return (
-    <div>
+    <div className="app">
       <h1>AI Mock Interview Platform</h1>
+      <p className="subtitle">Practice software engineering interviews with AI-powered questions.</p>
 
-      <p>
-        Practice technical and behavioral interviews with AI-powered feedback.
-      </p>
+      <h2>Interview Questions</h2>
 
-      <button>Start Interview</button>
-
-      <footer
-        style={{
-          marginTop: "80px",
-          borderTop: "1px solid #444",
-          paddingTop: "20px",
-          color: "#b0b0b0",
-          fontSize: "14px",
-        }}
-      >
-        <p><strong>Developed by Malcolm Felix</strong></p>
-        <p>Prairie View A&M University</p>
-
-        <p>
-          <a
-            href="https://github.com/Mfelix21"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
-          {" | "}
-          <a
-            href="https://www.linkedin.com/in/malcolm-felix-91140a250/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            LinkedIn
-          </a>
-        </p>
-
-        <p>© 2026 AI Mock Interview Platform</p>
-      </footer>
+      <div className="question-grid">
+        {questions.map((question, index) => (
+          <div className="question-card" key={index}>
+            <span>Question {index + 1}</span>
+            <p>{question}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
