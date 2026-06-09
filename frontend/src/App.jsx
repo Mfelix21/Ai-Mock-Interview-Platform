@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 
 function App() {
@@ -6,12 +6,15 @@ function App() {
   const [showQuestions, setShowQuestions] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/questions")
+  function getQuestions() {
+    fetch(`http://127.0.0.1:8000/questions/${selectedRole}`)
       .then((response) => response.json())
-      .then((data) => setQuestions(data.questions))
+      .then((data) => {
+        setQuestions(data.questions);
+        setShowQuestions(true);
+      })
       .catch((error) => console.error(error));
-  }, []);
+  }
 
   return (
     <div className="app">
@@ -36,16 +39,15 @@ function App() {
             onChange={(e) => setSelectedRole(e.target.value)}
           >
             <option value="">Choose a role</option>
-            <option value="Software Engineer">Software Engineer</option>
-            <option value="Data Analyst">Data Analyst</option>
-            <option value="Data Scientist">Data Scientist</option>
-            <option value="Product Manager">Product Manager</option>
+            <option value="software-engineer">Software Engineer</option>
+            <option value="data-analyst">Data Analyst</option>
+            <option value="data-scientist">Data Scientist</option>
           </select>
 
           <br />
           <br />
 
-          <button disabled={!selectedRole} onClick={() => setShowQuestions(true)}>
+          <button disabled={!selectedRole} onClick={getQuestions}>
             Generate Questions
           </button>
 
@@ -64,8 +66,8 @@ function App() {
           <div className="question-grid">
             {questions.map((question, index) => (
               <div className="question-card" key={index}>
-                <span>Question {index + 1}</span>
-                <p>{question}</p>
+                <span>{question.category}</span>
+                <p>{question.question}</p>
               </div>
             ))}
           </div>
