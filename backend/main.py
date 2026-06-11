@@ -1,7 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
 
 app = FastAPI()
+
+class AnswerSubmission(BaseModel):
+    role: str
+    answers: list[str]
 
 app.add_middleware(
     CORSMiddleware,
@@ -96,4 +102,11 @@ def get_questions(role: str):
     return {
         "role": role,
         "questions": questions
+    }
+@app.post("/submit_answers")
+def submit_answers(data: AnswerSubmission):
+    print(data)
+
+    return {
+        "message": "Answers received successfully"
     }
