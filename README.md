@@ -20,39 +20,16 @@ The goal of this project is to build an end-to-end interview preparation platfor
 
 ---
 
-## Current Features
+## Features
 
-### Interview Preparation
-
-* Role-based interview question generation
-* Software Engineer interview track
-* Data Analyst interview track
-* Data Scientist interview track
-
-### Question Categories
-
-* Behavioral Questions
-* Technical Questions
-* Project-Based Questions
-* Scenario-Based Questions
-
-### User Interface
-
-* Modern React frontend
-* Dynamic question cards
-* Role selection screen
-* Navigation controls
-* Responsive layout
-
-### Backend
-
-* FastAPI REST API
-* Dynamic API endpoints
-* Role-specific question retrieval
-* Frontend-to-backend communication
-
----
-
+- Role-based interview question generation
+- Software Engineer, Data Analyst, and Data Scientist question sets
+- Interactive answer submission forms
+- FastAPI REST API backend
+- React frontend
+- Answer submission through POST API requests
+- Responsive modern UI
+- 
 ## Current Tech Stack
 
 ### Frontend
@@ -100,22 +77,8 @@ The goal of this project is to build an end-to-end interview preparation platfor
 ---
 
 ## Project Architecture
+<img width="906" height="623" alt="image" src="https://github.com/user-attachments/assets/db473422-2789-4244-b5a7-6a516c9bc494" />
 
-```text
-React Frontend
-       │
-       ▼
-REST API Requests
-       │
-       ▼
-FastAPI Backend
-       │
-       ▼
-PostgreSQL Database
-       │
-       ▼
-AI Feedback Engine
-```
 
 ---
 
@@ -137,6 +100,7 @@ AI Feedback Engine
 ---
 
 ### Milestone 2: Role-Based Interview Generator (6-9-26)
+<img width="1446" height="907" alt="image" src="https://github.com/user-attachments/assets/ecbf898b-44c0-42f3-bd3c-76f5c40b9c3f" />
 
 <img width="1466" height="842" alt="Role Based Questions" src="https://github.com/user-attachments/assets/68d9debd-3e61-476d-847d-18282c0bbe1d" />
 
@@ -149,6 +113,17 @@ AI Feedback Engine
 * Added role-specific interview questions
 * Added question categories
 * Improved navigation and user experience
+
+### Milestone 3: Answer Submission System (6-11-26)
+<img width="1112" height="905" alt="image" src="https://github.com/user-attachments/assets/43dd620e-cc52-45fd-a847-6d0e6ba571de" />
+
+### Completed
+
+* Created POST API endpoint for answer submission
+* Connected React frontend to FastAPI backend
+* Implemented JSON request handling
+* Added submission confirmation workflow
+* Successfully transmitted interview answers from frontend to backend
 
 ---
 
