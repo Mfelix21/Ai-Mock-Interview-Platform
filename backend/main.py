@@ -5,10 +5,6 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-class AnswerSubmission(BaseModel):
-    role: str
-    answers: list[str]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -16,6 +12,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class AnswerSubmission(BaseModel):
+    role: str
+    answers: list[str]
+
 
 questions_by_role = {
     "software-engineer": [
@@ -104,9 +105,8 @@ def get_questions(role: str):
         "questions": questions
     }
 @app.post("/submit_answers")
-def submit_answers(data: AnswerSubmission):
-    print(data)
+def submit_answers(submission: AnswerSubmission):
+    print("Role:", submission.role)
+    print("Answers:", submission.answers)
 
-    return {
-        "message": "Answers received successfully"
-    }
+    return {"message": "Answers submitted successfully!"}
