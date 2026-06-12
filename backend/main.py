@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from sqlalchemy import text
+from database import engine
 
 app = FastAPI()
 
@@ -105,8 +106,25 @@ def get_questions(role: str):
         "questions": questions
     }
 @app.post("/submit_answers")
-def submit_answers(submission: AnswerSubmission):
-    print("Role:", submission.role)
-    print("Answers:", submission.answers)
+def submit_answers(data: AnswerSubmission):
+    with engine.connect() as connection:
+        connection.execute(
+            text("""
+                INSERT INTO interview_answers 
+                (role, answer_1, answer_2, answer_3, answer_4, answer_5)
+                VALUES (:role, :answer_1, :answer_2, :answer_3, :answer_4, :answer_5)
+            """),
+            {
+                "role": data.role,
+                "answer_1": data.answers[0] if len(data.answers) > 0 else "",
+                "answer_2": data.answers[1] if len(data.answers) > 1 else "",
+                "answer_3": data.answers[2] if len(data.answers) > 2 else "",
+                "answer_4": data.answers[3] if len(data.answers) > 3 else "",
+                "answer_5": data.answers[4] if len(data.answers) > 4 else "",
+            }
+        )
+        connection.commit()
 
-    return {"message": "Answers submitted successfully!"}
+    return {"message": "Answers saved to database successfully!"}
+
+
