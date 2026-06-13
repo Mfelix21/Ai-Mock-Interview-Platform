@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text
 from database import engine
+from auth import hash_password, verify_password
+
 
 app = FastAPI()
 
@@ -17,6 +19,16 @@ app.add_middleware(
 class AnswerSubmission(BaseModel):
     role: str
     answers: list[str]
+    user_id: int
+
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
 
 questions_by_role = {
@@ -107,12 +119,12 @@ def get_questions(role: str):
     }
 @app.post("/submit_answers")
 def submit_answers(data: AnswerSubmission):
-    with engine.connect() as connection:
+    with engine.begin() as connection:
         connection.execute(
             text("""
-                INSERT INTO interview_answers 
-                (role, answer_1, answer_2, answer_3, answer_4, answer_5)
-                VALUES (:role, :answer_1, :answer_2, :answer_3, :answer_4, :answer_5)
+                INSERT INTO interview_answers
+                (role, answer_1, answer_2, answer_3, answer_4, answer_5, user_id)
+                VALUES (:role, :answer_1, :answer_2, :answer_3, :answer_4, :answer_5, :user_id)
             """),
             {
                 "role": data.role,
@@ -121,10 +133,87 @@ def submit_answers(data: AnswerSubmission):
                 "answer_3": data.answers[2] if len(data.answers) > 2 else "",
                 "answer_4": data.answers[3] if len(data.answers) > 3 else "",
                 "answer_5": data.answers[4] if len(data.answers) > 4 else "",
+                "user_id": data.user_id,
             }
         )
-        connection.commit()
 
-    return {"message": "Answers saved to database successfully!"}
+    return {"message": "Answers saved successfully"}
 
+@app.get("/answers/{user_id}")
+def get_answers(user_id: int):
+    with engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT id, role, answer_1, answer_2, answer_3, answer_4, answer_5, created_at
+                FROM interview_answers
+                WHERE user_id = :user_id
+                ORDER BY created_at DESC
+            """),
+            {"user_id": user_id}
+        )
+
+        saved_answers = []
+
+        for row in result:
+            saved_answers.append({
+                "id": row.id,
+                "role": row.role,
+                "answers": [
+                    row.answer_1,
+                    row.answer_2,
+                    row.answer_3,
+                    row.answer_4,
+                    row.answer_5
+                ],
+                "created_at": str(row.created_at)
+            })
+
+    return {"saved_answers": saved_answers}
+@app.post("/register")
+def register(user: UserCreate):
+    try:
+        hashed_password = hash_password(user.password)
+
+        query = text("""
+            INSERT INTO users (username, email, password_hash)
+            VALUES (:username, :email, :password_hash)
+        """)
+
+        with engine.begin() as conn:
+            conn.execute(query, {
+                "username": user.username,
+                "email": user.email,
+                "password_hash": hashed_password
+            })
+
+        return {"message": "User registered successfully"}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/login")
+def login(user: UserLogin):
+    query = text("""
+        SELECT * FROM users
+        WHERE email = :email
+    """)
+
+    with engine.begin() as conn:
+        result = conn.execute(query, {
+            "email": user.email
+        }).fetchone()
+
+    if result is None:
+        return {"error": "Invalid email or password"}
+
+    stored_hash = result.password_hash
+
+    if not verify_password(user.password, stored_hash):
+        return {"error": "Invalid email or password"}
+
+    return {
+        "message": "Login successful",
+        "user_id": result.id,
+        "username": result.username
+    }
 
