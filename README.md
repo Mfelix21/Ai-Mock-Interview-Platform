@@ -22,14 +22,15 @@ The goal of this project is to build an end-to-end interview preparation platfor
 
 ## Features
 
-- Role-based interview question generation
-- Software Engineer, Data Analyst, and Data Scientist question sets
-- Interactive answer submission forms
-- FastAPI REST API backend
-- React frontend
-- Answer submission through POST API requests
-- Responsive modern UI
-- 
+- Role-specific interview questions
+- User registration and login
+- Secure password hashing (bcrypt)
+- PostgreSQL database integration
+- User-specific interview history
+- Protected answer ownership
+- Saved interview responses
+- Responsive modern UIrn UI
+  
 ## Current Tech Stack
 
 ### Frontend
@@ -77,7 +78,7 @@ The goal of this project is to build an end-to-end interview preparation platfor
 ---
 
 ## Project Architecture
-<img width="906" height="623" alt="image" src="https://github.com/user-attachments/assets/db473422-2789-4244-b5a7-6a516c9bc494" />
+<img width="932" height="617" alt="image" src="https://github.com/user-attachments/assets/ef4b3f71-81a4-460d-bfc6-e5a266c82d11" />
 
 
 ---
@@ -114,6 +115,9 @@ The goal of this project is to build an end-to-end interview preparation platfor
 * Added question categories
 * Improved navigation and user experience
 
+---
+
+
 ### Milestone 3: Answer Submission System (6-11-26)
 <img width="1112" height="905" alt="image" src="https://github.com/user-attachments/assets/43dd620e-cc52-45fd-a847-6d0e6ba571de" />
 
@@ -126,40 +130,42 @@ The goal of this project is to build an end-to-end interview preparation platfor
 * Successfully transmitted interview answers from frontend to backend
 
 ---
+### Milestone 4: Authentication & User Management (6-13-26)
+
+<img width="1433" height="748" alt="image" src="https://github.com/user-attachments/assets/c94b76b9-7294-432a-a022-adb84cdaeb53" />
+
+
+#### Completed
+
+* Created PostgreSQL users table
+* Implemented user registration functionality
+* Added secure password hashing with bcrypt
+* Built user login system using FastAPI
+* Connected React frontend authentication forms to backend APIs
+* Added authenticated user state management
+* Linked interview submissions to specific users using user_id foreign keys
+* Implemented user-specific interview history retrieval
+* Added logout functionality
+* Prevented users from viewing other users' interview submissions
+* Updated homepage navigation based on authentication status
+* Improved UI with modern dashboard-style landing page
 
 ## Upcoming Features
 
+
 ### Phase 1
-
-* PostgreSQL database integration
-* Store interview questions in database
-* Store user responses
-
-### Phase 2
-
-* User answer submission form
-* Interview session tracking
-* Answer history
-
-### Phase 3
 
 * AI-powered interview feedback
 * Resume analysis
 * Personalized recommendations
 
-### Phase 4
-
-* User authentication
-* User accounts
-* Saved interview sessions
-
-### Phase 5
+### Phase 2
 
 * Docker containerization
 * GitHub Actions workflow
 * AWS deployment
 
-### Phase 6
+### Phase 3
 
 * Tableau analytics dashboard
 * Interview performance metrics
