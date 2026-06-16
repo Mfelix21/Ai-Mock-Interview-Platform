@@ -7,7 +7,7 @@ function App() {
   const [selectedRole, setSelectedRole] = useState("");
   const [answers, setAnswers] = useState([]);
   const [savedAnswers, setSavedAnswers] = useState([]);
-
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +15,7 @@ function App() {
   const [authMessage, setAuthMessage] = useState("");
   const [aiFeedback, setAiFeedback] = useState("");
   const [loadingFeedback, setLoadingFeedback] = useState(false);
-
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
   function registerUser() {
     fetch("http://127.0.0.1:8000/register", {
@@ -59,6 +59,8 @@ function App() {
       .then((data) => {
         setQuestions(data.questions);
         setAnswers([]);
+        setCurrentQuestionIndex(0);
+        setAiFeedback("");
         setShowQuestions(true);
       })
       .catch((error) => console.error(error));
@@ -74,7 +76,7 @@ function App() {
     if (!loggedInUser) {
       alert("Please log in before submitting answers.");
       return;
-  }
+    }
 
     fetch("http://127.0.0.1:8000/submit_answers", {
       method: "POST",
@@ -83,7 +85,7 @@ function App() {
         role: selectedRole,
         answers: answers,
         user_id: loggedInUser.user_id,
-     }),
+      }),
     })
       .then((response) => response.json())
       .then((data) => alert(data.message))
@@ -91,56 +93,56 @@ function App() {
   }
 
   function showSavedAnswersPage() {
-  if (!loggedInUser) {
-    alert("Please log in to view your saved answers.");
-    return;
-  }
+    if (!loggedInUser) {
+      alert("Please log in to view your saved answers.");
+      return;
+    }
 
-  fetch(`http://127.0.0.1:8000/answers/${loggedInUser.user_id}`)
-    .then((response) => response.json())
-    .then((data) => {
-      setSavedAnswers(data.saved_answers);
-      setShowQuestions("saved");
-    })
-    .catch((error) => console.error("Error fetching saved answers:", error));
+    fetch(`http://127.0.0.1:8000/answers/${loggedInUser.user_id}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setSavedAnswers(data.saved_answers);
+        setShowQuestions("saved");
+      })
+      .catch((error) => console.error("Error fetching saved answers:", error));
   }
 
   async function getAIFeedback(question, answer) {
-  if (!answer || answer.trim().length < 20) {
-    setAiFeedback("Please write a longer answer before requesting AI feedback.");
-    return;
-  }
-
-  setLoadingFeedback(true);
-  setAiFeedback("");
-
-  try {
-    const response = await fetch("http://127.0.0.1:8000/ai-feedback", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        role: selectedRole,
-        question: question,
-        answer: answer,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.feedback) {
-      setAiFeedback(data.feedback);
-    } else {
-      setAiFeedback(data.error || "Something went wrong.");
+    if (!answer || answer.trim().length < 20) {
+      setAiFeedback("Please write a longer answer before requesting AI feedback.");
+      return;
     }
-  } catch (error) {
-    console.error(error);
-    setAiFeedback("Unable to get AI feedback.");
-  }
 
-  setLoadingFeedback(false);
-}
+    setLoadingFeedback(true);
+    setAiFeedback("");
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/ai-feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          role: selectedRole,
+          question: question,
+          answer: answer,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.feedback) {
+        setAiFeedback(data.feedback);
+      } else {
+        setAiFeedback(data.error || "Something went wrong.");
+      }
+    } catch (error) {
+      console.error(error);
+      setAiFeedback("Unable to get AI feedback.");
+    }
+
+    setLoadingFeedback(false);
+  }
 
 
   function formatRole(role) {
@@ -368,122 +370,262 @@ function App() {
           <p>{authMessage}</p>
         </section>
       ) : showQuestions === "role" ? (
-        <section>
-          <h1>Select a Role</h1>
+        <section className="dashboard-layout">
+          <aside className="sidebar">
+            <h2>🧠 AI Career Intelligence Platform</h2>
+            <p>Made by Malcolm Felix</p>
 
-          <select
-            className="role-select"
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-          >
-            <option value="">Choose a role</option>
-            <option value="software-engineer">Software Engineer</option>
-            <option value="data-analyst">Data Analyst</option>
-            <option value="data-scientist">Data Scientist</option>
-          </select>
+            <button onClick={() => setShowQuestions(false)}>🏠 Home</button>
+            <button className="sidebar-active">🎯 Practice Interview</button>
+            <button>📊 Analytics</button>
+            <button onClick={showSavedAnswersPage}>💼 Saved Responses</button>
+            <button>📄 Resume Review</button>
+            <button>⚙️ Settings</button>
+            <button className="logout-button" onClick={logoutUser}>🚪 Logout</button>
+          </aside>
 
-          <br />
-          <br />
+          <main className="practice-area role-page">
+            <p className="welcome-text">
+              Welcome back, {loggedInUser?.username || "Malcolm"} 👋
+            </p>
 
-          <button disabled={!selectedRole} onClick={getQuestions}>
-            Generate Questions
-          </button>
+            <h1>Select a Role</h1>
 
-          <br />
-          <br />
+            <p className="role-subtitle">
+              Choose a role to generate personalized interview questions and start practicing.
+            </p>
 
-          <button className="back-button" onClick={() => setShowQuestions(false)}>
-            Back Home
-          </button>
+            <div className="role-card">
+              <h3>💼 Choose Interview Role</h3>
+
+              <select
+                className="role-select"
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+              >
+                <option value="">Choose a role</option>
+                <option value="software-engineer">Software Engineer</option>
+                <option value="data-analyst">Data Analyst</option>
+                <option value="data-scientist">Data Scientist</option>
+              </select>
+            </div>
+
+            <button
+              className="generate-button"
+              disabled={!selectedRole}
+              onClick={getQuestions}
+            >
+              ✨ Generate Questions
+            </button>
+
+            <button className="outline-button" onClick={() => setShowQuestions(false)}>
+              ← Back to Home
+            </button>
+
+            <div className="role-feature-row">
+              <div className="role-feature">
+                <span>🎯</span>
+                <h4>Role-Specific Questions</h4>
+                <p>Get questions tailored to your selected career path.</p>
+              </div>
+
+              <div className="role-feature">
+                <span>🧠</span>
+                <h4>AI-Powered</h4>
+                <p>Generate feedback based on your interview answers.</p>
+              </div>
+
+              <div className="role-feature">
+                <span>📈</span>
+                <h4>Track Progress</h4>
+                <p>Save answers and review your growth over time.</p>
+              </div>
+
+              <div className="role-feature">
+                <span>🏆</span>
+                <h4>Ace Your Interview</h4>
+                <p>Practice confidently before real interviews.</p>
+              </div>
+            </div>
+          </main>
         </section>
       ) : showQuestions === "saved" ? (
-        <section className="saved-page">
-          <h1>Saved Interview Responses</h1>
-          <p className="page-description">
-            Review your past interview answers and track your progress over time.
-          </p>
+        <section className="dashboard-layout">
+          <aside className="sidebar">
+            <h2>🧠 AI Career Intelligence Platform</h2>
+            <p>Made by Malcolm Felix</p>
 
-          <button className="back-button" onClick={() => setShowQuestions(false)}>
-            Back Home
-          </button>
+            <button onClick={() => setShowQuestions(true)}>🎯 Practice Interview</button>
+            <button>📊 Analytics</button>
+            <button className="sidebar-active">💼 Saved Responses</button>
+            <button>📄 Resume Review</button>
+            <button>⚙️ Settings</button>
+            <button className="logout-button" onClick={logoutUser}>🚪 Logout</button>
+          </aside>
 
-          <div className="saved-answers-section">
-            {savedAnswers.length === 0 ? (
-              <p>No saved answers yet.</p>
-            ) : (
-              savedAnswers.map((submission) => (
-                <div className="saved-answer-card" key={submission.id}>
-                  <div className="saved-card-header">
-                    <h3>{formatRole(submission.role)}</h3>
-                    <span>Submission #{submission.id}</span>
-                  </div>
+          <main className="practice-area">
+            <div className="practice-header">
+              <div>
+                <h1>Saved Interview Responses</h1>
+                <p>Review your past interview answers and track your progress over time.</p>
+              </div>
 
-                  <div className="saved-answer-list">
-                    {submission.answers.map((answer, index) => (
+              <button onClick={() => setShowQuestions("role")}>+ New Interview</button>
+            </div>
+
+            <div className="saved-stats-grid">
+              <div className="stat-card">Total Interviews: {savedAnswers.length}</div>
+              <div className="stat-card">Average Score: Coming Soon</div>
+              <div className="stat-card">Highest Score: Coming Soon</div>
+              <div className="stat-card">Latest Interview: Coming Soon</div>
+            </div>
+
+            <div className="saved-dashboard-grid">
+              <div className="saved-list-panel">
+                <h2>Your Interviews</h2>
+
+                {savedAnswers.length === 0 ? (
+                  <p>No saved answers yet.</p>
+                ) : (
+                  savedAnswers.map((submission) => (
+                    <div
+                      className="interview-list-card"
+                      key={submission.id}
+                      onClick={() => setSelectedSubmission(submission)}
+                    >
+                      <div>
+                        <h3>{formatRole(submission.role)} Interview</h3>
+                        <p>{submission.answers.length} Questions</p>
+                      </div>
+
+                      <span>Submission #{submission.id}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="interview-detail-panel">
+                {selectedSubmission ? (
+                  <>
+                    <h2>{formatRole(selectedSubmission.role)} Interview</h2>
+
+                    <p>Submission #{selectedSubmission.id}</p>
+
+                    {selectedSubmission.answers.map((answer, index) => (
                       <div className="saved-answer-item" key={index}>
                         <strong>Answer {index + 1}</strong>
+
                         <p>{answer || "No answer provided."}</p>
                       </div>
                     ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                  </>
+                ) : (
+                  <>
+                    <h2>Interview Details</h2>
+                    <p>Select an interview to view answers.</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </main>
         </section>
       ) : (
-        <section>
-          <h1>Interview Practice</h1>
-          <h2>{formatRole(selectedRole)} Interview Questions</h2>
+        <section className="dashboard-layout">
+          <aside className="sidebar">
+            <h2>🧠 AI Career Intelligence Platform</h2>
+            <p>Made by Malcolm Felix</p>
 
-          <div className="interview-info">
-            <span>{questions.length} Questions</span>
-            <span>Estimated Time: 15 Minutes</span>
-            <span>Role-Based Practice</span>
-          </div>
+            <button className="sidebar-active">🎯 Practice Interview</button>
+            <button onClick={showSavedAnswersPage}>📊 Analytics</button>
+            <button>📄 Resume Review</button>
+            <button>⚙️ Settings</button>
+            <button className="logout-button" onClick={logoutUser}>🚪 Logout</button>
+          </aside>
 
-          <div className="question-grid">
-            {questions.map((question, index) => (
-              <div className="question-card" key={index}>
-                <span>{question.category}</span>
-                <p>{question.question}</p>
-
-                <textarea
-                  className="answer-box"
-                  placeholder="Type your answer here..."
-                  value={answers[index] || ""}
-                  onChange={(e) => handleAnswerChange(index, e.target.value)}
-                />
-
-                <button
-                  className="ai-feedback-button"
-                  onClick={() => getAIFeedback(question.question, answers[index])}
-                >
-                  Get AI Feedback
-                </button>
+          <main className="practice-area">
+            <div className="practice-header">
+              <div>
+                <h1>Practice Interview</h1>
+                <p>Answer the following question and get AI-powered feedback.</p>
               </div>
-            ))}
-          </div>
-          {loadingFeedback && <p>Generating AI feedback...</p>}
 
-          {aiFeedback && (
-            <div className="ai-feedback-card">
-              <h3>🤖 AI Interview Coach Feedback</h3>
-              <pre>{aiFeedback}</pre>
+              <span className="role-badge">
+                Role: {formatRole(selectedRole)}
+              </span>
             </div>
-          )}
 
-          <button onClick={submitAnswers}>
-            Submit Answers
-          </button>
+            {questions.length > 0 && (
+              <>
+                <div className="single-question-card">
+                  <span className="question-count">
+                    Question {currentQuestionIndex + 1} of {questions.length}
+                  </span>
 
-          <button className="back-button" onClick={() => setShowQuestions("role")}>
-            Change Role
-          </button>
+                  <h2>{questions[currentQuestionIndex].question}</h2>
 
-          <button className="back-button" onClick={() => setShowQuestions(false)}>
-            Back to Home
-          </button>
+                  <label>Your Answer</label>
+
+                  <textarea
+                    className="single-answer-box"
+                    placeholder="Type your answer here..."
+                    value={answers[currentQuestionIndex] || ""}
+                    onChange={(e) =>
+                      handleAnswerChange(currentQuestionIndex, e.target.value)
+                    }
+                  />
+
+                  <button
+                    className="ai-feedback-button"
+                    onClick={() =>
+                      getAIFeedback(
+                        questions[currentQuestionIndex].question,
+                        answers[currentQuestionIndex]
+                      )
+                    }
+                  >
+                    ✨ Get AI Feedback
+                  </button>
+                </div>
+
+                {loadingFeedback && <p>Generating AI feedback...</p>}
+
+                {aiFeedback && (
+                  <div className="ai-feedback-card">
+                    <h3>🤖 AI Interview Coach Feedback</h3>
+                    <pre>{aiFeedback}</pre>
+                  </div>
+                )}
+
+                <div className="question-nav">
+                  <button
+                    disabled={currentQuestionIndex === 0}
+                    onClick={() => {
+                      setCurrentQuestionIndex(currentQuestionIndex - 1);
+                      setAiFeedback("");
+                    }}
+                  >
+                    ← Previous Question
+                  </button>
+
+                  <button
+                    disabled={currentQuestionIndex === questions.length - 1}
+                    onClick={() => {
+                      setCurrentQuestionIndex(currentQuestionIndex + 1);
+                      setAiFeedback("");
+                    }}
+                  >
+                    Next Question →
+                  </button>
+                </div>
+
+                <button onClick={submitAnswers}>Submit Answers</button>
+
+                <button className="back-button" onClick={() => setShowQuestions("role")}>
+                  Change Role
+                </button>
+              </>
+            )}
+          </main>
         </section>
       )}
 

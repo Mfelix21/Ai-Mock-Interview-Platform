@@ -716,3 +716,219 @@ body {
   font-family: inherit;
   line-height: 1.6;
 }
+
+.auth-card {
+  max-width: 450px;
+  margin: 80px auto;
+  padding: 40px;
+  background: #0f172a;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 18px;
+  text-align: center;
+  color: white;
+}
+
+.auth-card h1 {
+  font-size: 3rem;
+  margin-bottom: 30px;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid #3b82f6;
+  background: #020617;
+  color: white;
+  font-size: 1rem;
+}
+
+.auth-card input::placeholder {
+  color: #94a3b8;
+}
+
+.auth-card button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.auth-card .back-button {
+  background: transparent;
+  border: 1px solid #3b82f6;
+}
+
+.auth-card p {
+  margin-top: 18px;
+  color: #93c5fd;
+}
+
+.saved-answer-item {
+  margin-top: 15px;
+  padding: 15px;
+  background: #020617;
+  border-radius: 12px;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.saved-answer-item strong {
+  color: #60a5fa;
+}
+
+.saved-answer-item p {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.saved-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.saved-stats-grid .stat-card {
+  background: #0f172a;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 16px;
+  padding: 22px;
+  text-align: left;
+}
+
+.saved-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 25px;
+  align-items: start;
+}
+
+.saved-list-panel,
+.interview-detail-panel {
+  background: #0f172a;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 16px;
+  padding: 25px;
+  text-align: left;
+}
+
+.interview-list-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #020617;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  border-radius: 14px;
+  padding: 18px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+.interview-list-card:hover {
+  border-color: #3b82f6;
+}
+
+.interview-list-card span {
+  color: #60a5fa;
+}
+
+.role-page {
+  text-align: center;
+}
+
+.welcome-text {
+  color: #38bdf8;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.role-subtitle {
+  color: #cbd5e1;
+  max-width: 650px;
+  margin: 0 auto 30px;
+  line-height: 1.6;
+}
+
+.role-card {
+  max-width: 720px;
+  margin: 30px auto 25px;
+  padding: 30px;
+  background: #0f172a;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 18px;
+  text-align: left;
+}
+
+.role-card h3 {
+  margin-bottom: 20px;
+}
+
+.role-card .role-select {
+  width: 100%;
+  padding: 16px;
+  border-radius: 10px;
+  background: #020617;
+  color: white;
+  border: 1px solid #3b82f6;
+  font-size: 1rem;
+}
+
+.generate-button {
+  display: block;
+  width: 280px;
+  margin: 20px auto;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.outline-button {
+  display: block;
+  width: 280px;
+  margin: 15px auto 40px;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #3b82f6;
+  background: transparent;
+  color: #60a5fa;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.role-feature-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 35px;
+}
+
+.role-feature {
+  background: #0f172a;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  border-radius: 16px;
+  padding: 22px;
+  text-align: left;
+}
+
+.role-feature span {
+  font-size: 1.8rem;
+}
+
+.role-feature h4 {
+  margin: 12px 0 8px;
+}
+
+.role-feature p {
+  color: #cbd5e1;
+  line-height: 1.5;
+}
