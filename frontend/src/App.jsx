@@ -13,6 +13,9 @@ function App() {
   const [password, setPassword] = useState("");
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [authMessage, setAuthMessage] = useState("");
+  const [aiFeedback, setAiFeedback] = useState("");
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+
 
   function registerUser() {
     fetch("http://127.0.0.1:8000/register", {
@@ -101,6 +104,44 @@ function App() {
     })
     .catch((error) => console.error("Error fetching saved answers:", error));
   }
+
+  async function getAIFeedback(question, answer) {
+  if (!answer || answer.trim().length < 20) {
+    setAiFeedback("Please write a longer answer before requesting AI feedback.");
+    return;
+  }
+
+  setLoadingFeedback(true);
+  setAiFeedback("");
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/ai-feedback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        role: selectedRole,
+        question: question,
+        answer: answer,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.feedback) {
+      setAiFeedback(data.feedback);
+    } else {
+      setAiFeedback(data.error || "Something went wrong.");
+    }
+  } catch (error) {
+    console.error(error);
+    setAiFeedback("Unable to get AI feedback.");
+  }
+
+  setLoadingFeedback(false);
+}
+
 
   function formatRole(role) {
     return role
@@ -413,11 +454,28 @@ function App() {
                   value={answers[index] || ""}
                   onChange={(e) => handleAnswerChange(index, e.target.value)}
                 />
+
+                <button
+                  className="ai-feedback-button"
+                  onClick={() => getAIFeedback(question.question, answers[index])}
+                >
+                  Get AI Feedback
+                </button>
               </div>
             ))}
           </div>
+          {loadingFeedback && <p>Generating AI feedback...</p>}
 
-          <button onClick={submitAnswers}>Submit Answers</button>
+          {aiFeedback && (
+            <div className="ai-feedback-card">
+              <h3>🤖 AI Interview Coach Feedback</h3>
+              <pre>{aiFeedback}</pre>
+            </div>
+          )}
+
+          <button onClick={submitAnswers}>
+            Submit Answers
+          </button>
 
           <button className="back-button" onClick={() => setShowQuestions("role")}>
             Change Role

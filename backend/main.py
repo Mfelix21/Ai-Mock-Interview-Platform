@@ -4,9 +4,65 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from database import engine
 from auth import hash_password, verify_password
+from dotenv import load_dotenv
+import os
+from openai import OpenAI
 
+
+load_dotenv()
 
 app = FastAPI()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+class AnswerRequest(BaseModel):
+    role: str
+    question: str
+    answer: str
+
+@app.post("/ai-feedback")
+def ai_feedback(data: AnswerRequest):
+    try:
+
+        # Safeguard
+        if len(data.answer.strip()) < 20:
+            return {
+                "error": "Answer is too short for meaningful feedback."
+            }
+
+        prompt = f"""
+        You are an expert interview coach.
+
+        Role: {data.role}
+
+        Question:
+        {data.question}
+
+        Answer:
+        {data.answer}
+
+        Give feedback in this format:
+        1. Score out of 10
+        2. Strengths
+        3. Areas for improvement
+        4. Example stronger answer
+        """
+
+        response = client.responses.create(
+            model="gpt-4o-mini",
+            input=prompt
+        )
+
+        return {
+            "feedback": response.output_text
+        }
+
+    except Exception as e:
+        print("AI FEEDBACK ERROR:", str(e))
+        return {
+            "error": "AI feedback is currently unavailable. Please try again later."
+        }
+    
 
 app.add_middleware(
     CORSMiddleware,
