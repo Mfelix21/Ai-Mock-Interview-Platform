@@ -309,3 +309,30 @@ def get_analytics_summary(user_id: int):
         "highest_score": result.highest_score or 0,
         "lowest_score": result.lowest_score or 0
     }
+
+@app.get("/analytics/history/{user_id}")
+def get_analytics_history(user_id: int):
+    with engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT id, role, score, feedback, created_at
+                FROM interview_answers
+                WHERE user_id = :user_id
+                AND score IS NOT NULL
+                ORDER BY created_at ASC
+            """),
+            {"user_id": user_id}
+        )
+
+        history = []
+
+        for row in result:
+            history.append({
+                "id": row.id,
+                "role": row.role,
+                "score": row.score,
+                "feedback": row.feedback,
+                "created_at": str(row.created_at)
+            })
+
+    return {"history": history}

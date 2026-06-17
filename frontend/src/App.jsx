@@ -1,5 +1,14 @@
 import { useState } from "react";
 import "./App.css";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 function App() {
   const [questions, setQuestions] = useState([]);
@@ -21,6 +30,8 @@ function App() {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
 
   const [analytics, setAnalytics] = useState(null);
+  const [analyticsHistory, setAnalyticsHistory] = useState([]);
+  const [expandedFeedbackId, setExpandedFeedbackId] = useState(null);
 
   function registerUser() {
     fetch("http://127.0.0.1:8000/register", {
@@ -164,12 +175,21 @@ function App() {
       return;
     }
 
-    const response = await fetch(
+    const summaryResponse = await fetch(
       `http://127.0.0.1:8000/analytics/summary/${loggedInUser.user_id}`
     );
 
-    const data = await response.json();
-    setAnalytics(data);
+    const summaryData = await summaryResponse.json();
+
+    const historyResponse = await fetch(
+      `http://127.0.0.1:8000/analytics/history/${loggedInUser.user_id}`
+    );
+
+    const historyData = await historyResponse.json();
+
+    setAnalytics(summaryData);
+    setAnalyticsHistory(historyData.history);
+
     setShowQuestions("analytics");
   }
 
@@ -508,11 +528,72 @@ function App() {
               <p>Loading analytics...</p>
             )}
 
-            <div className="ai-feedback-card">
-              <h3>Next Upgrade</h3>
-              <p>
-                Add score trends, average score by role, and previous AI feedback history.
-              </p>
+            <div className="chart-card-container">
+              <h2>📈 Score Trend</h2>
+
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={analyticsHistory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="id"
+                    label={{
+                      value: "Interview Number",
+                      position: "insideBottom",
+                      offset: -5
+                    }}
+                  />
+                  <YAxis
+                    domain={[0, 10]}
+                    label={{
+                      value: "Score",
+                      angle: -90,
+                      position: "insideLeft"
+                    }}
+                  />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#60a5fa"
+                    strokeWidth={3}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="feedback-history">
+              <h2>📝 Feedback History</h2>
+
+              {analyticsHistory.map((item) => (
+                <div className="feedback-history-card" key={item.id}>
+                  <div className="feedback-card-header">
+                    <div>
+                      <h3>{formatRole(item.role)} Interview #{item.id}</h3>
+                      <p>
+                        <strong>Score:</strong> {item.score}/10
+                      </p>
+                      <p>
+                        <strong>Date:</strong>{" "}
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        setExpandedFeedbackId(
+                          expandedFeedbackId === item.id ? null : item.id
+                        )
+                      }
+                    >
+                      {expandedFeedbackId === item.id ? "Hide Feedback" : "View Feedback"}
+                    </button>
+                  </div>
+
+                  {expandedFeedbackId === item.id && (
+                    <pre>{item.feedback}</pre>
+                  )}
+                </div>
+              ))}
             </div>
           </main>
         </section>
