@@ -8,14 +8,19 @@ function App() {
   const [answers, setAnswers] = useState([]);
   const [savedAnswers, setSavedAnswers] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [authMessage, setAuthMessage] = useState("");
+
   const [aiFeedback, setAiFeedback] = useState("");
   const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
+
+  const [analytics, setAnalytics] = useState(null);
 
   function registerUser() {
     fetch("http://127.0.0.1:8000/register", {
@@ -40,6 +45,7 @@ function App() {
 
         if (data.user_id) {
           setLoggedInUser(data);
+          localStorage.setItem("user_id", data.user_id);
           setShowQuestions(false);
         }
       })
@@ -48,9 +54,11 @@ function App() {
 
   function logoutUser() {
     setLoggedInUser(null);
+    localStorage.removeItem("user_id");
     setEmail("");
     setPassword("");
     setAuthMessage("Logged out successfully");
+    setShowQuestions(false);
   }
 
   function getQuestions() {
@@ -88,7 +96,13 @@ function App() {
       }),
     })
       .then((response) => response.json())
-      .then((data) => alert(data.message))
+      .then((data) => {
+        alert(data.message || data.error);
+
+        if (data.feedback) {
+          setAiFeedback(data.feedback);
+        }
+      })
       .catch((error) => console.error(error));
   }
 
@@ -144,6 +158,20 @@ function App() {
     setLoadingFeedback(false);
   }
 
+  async function getAnalytics() {
+    if (!loggedInUser) {
+      alert("Please log in to view analytics.");
+      return;
+    }
+
+    const response = await fetch(
+      `http://127.0.0.1:8000/analytics/summary/${loggedInUser.user_id}`
+    );
+
+    const data = await response.json();
+    setAnalytics(data);
+    setShowQuestions("analytics");
+  }
 
   function formatRole(role) {
     return role
@@ -163,6 +191,7 @@ function App() {
               <button onClick={() => setShowQuestions(false)}>Home</button>
               <button onClick={() => setShowQuestions("role")}>Interviews</button>
               <button onClick={showSavedAnswersPage}>History</button>
+              <button onClick={getAnalytics}>Analytics</button>
             </div>
 
             {!loggedInUser ? (
@@ -209,8 +238,10 @@ function App() {
                   View Saved Answers
                 </button>
               </div>
+
               <p className="auth-message">{authMessage}</p>
             </div>
+
             <div className="hero-visual">
               <div className="visual-card main-card">
                 <div className="visual-avatar">👤</div>
@@ -234,7 +265,6 @@ function App() {
                 🏆 Strong Answer
               </div>
             </div>
-
           </section>
 
           <section className="feature-grid">
@@ -287,6 +317,7 @@ function App() {
               <p>Powered</p>
             </div>
           </section>
+
           <section className="how-section">
             <h2>How It Works</h2>
 
@@ -377,11 +408,13 @@ function App() {
 
             <button onClick={() => setShowQuestions(false)}>🏠 Home</button>
             <button className="sidebar-active">🎯 Practice Interview</button>
-            <button>📊 Analytics</button>
+            <button onClick={getAnalytics}>📊 Analytics</button>
             <button onClick={showSavedAnswersPage}>💼 Saved Responses</button>
             <button>📄 Resume Review</button>
             <button>⚙️ Settings</button>
-            <button className="logout-button" onClick={logoutUser}>🚪 Logout</button>
+            <button className="logout-button" onClick={logoutUser}>
+              🚪 Logout
+            </button>
           </aside>
 
           <main className="practice-area role-page">
@@ -421,31 +454,65 @@ function App() {
             <button className="outline-button" onClick={() => setShowQuestions(false)}>
               ← Back to Home
             </button>
+          </main>
+        </section>
+      ) : showQuestions === "analytics" ? (
+        <section className="dashboard-layout">
+          <aside className="sidebar">
+            <h2>🧠 AI Career Intelligence Platform</h2>
+            <p>Made by Malcolm Felix</p>
 
-            <div className="role-feature-row">
-              <div className="role-feature">
-                <span>🎯</span>
-                <h4>Role-Specific Questions</h4>
-                <p>Get questions tailored to your selected career path.</p>
+            <button onClick={() => setShowQuestions("role")}>🎯 Practice Interview</button>
+            <button className="sidebar-active">📊 Analytics</button>
+            <button onClick={showSavedAnswersPage}>💼 Saved Responses</button>
+            <button>📄 Resume Review</button>
+            <button>⚙️ Settings</button>
+            <button className="logout-button" onClick={logoutUser}>
+              🚪 Logout
+            </button>
+          </aside>
+
+          <main className="practice-area">
+            <div className="practice-header">
+              <div>
+                <h1>📊 Interview Analytics</h1>
+                <p>Track your mock interview performance over time.</p>
               </div>
 
-              <div className="role-feature">
-                <span>🧠</span>
-                <h4>AI-Powered</h4>
-                <p>Generate feedback based on your interview answers.</p>
-              </div>
+              <button onClick={() => setShowQuestions("role")}>+ New Interview</button>
+            </div>
 
-              <div className="role-feature">
-                <span>📈</span>
-                <h4>Track Progress</h4>
-                <p>Save answers and review your growth over time.</p>
-              </div>
+            {analytics ? (
+              <div className="saved-stats-grid">
+                <div className="stat-card">
+                  <h3>Total Interviews</h3>
+                  <h2>{analytics.total_interviews}</h2>
+                </div>
 
-              <div className="role-feature">
-                <span>🏆</span>
-                <h4>Ace Your Interview</h4>
-                <p>Practice confidently before real interviews.</p>
+                <div className="stat-card">
+                  <h3>Average Score</h3>
+                  <h2>{analytics.average_score}/10</h2>
+                </div>
+
+                <div className="stat-card">
+                  <h3>Highest Score</h3>
+                  <h2>{analytics.highest_score}/10</h2>
+                </div>
+
+                <div className="stat-card">
+                  <h3>Lowest Score</h3>
+                  <h2>{analytics.lowest_score}/10</h2>
+                </div>
               </div>
+            ) : (
+              <p>Loading analytics...</p>
+            )}
+
+            <div className="ai-feedback-card">
+              <h3>Next Upgrade</h3>
+              <p>
+                Add score trends, average score by role, and previous AI feedback history.
+              </p>
             </div>
           </main>
         </section>
@@ -455,12 +522,14 @@ function App() {
             <h2>🧠 AI Career Intelligence Platform</h2>
             <p>Made by Malcolm Felix</p>
 
-            <button onClick={() => setShowQuestions(true)}>🎯 Practice Interview</button>
-            <button>📊 Analytics</button>
+            <button onClick={() => setShowQuestions("role")}>🎯 Practice Interview</button>
+            <button onClick={getAnalytics}>📊 Analytics</button>
             <button className="sidebar-active">💼 Saved Responses</button>
             <button>📄 Resume Review</button>
             <button>⚙️ Settings</button>
-            <button className="logout-button" onClick={logoutUser}>🚪 Logout</button>
+            <button className="logout-button" onClick={logoutUser}>
+              🚪 Logout
+            </button>
           </aside>
 
           <main className="practice-area">
@@ -475,8 +544,8 @@ function App() {
 
             <div className="saved-stats-grid">
               <div className="stat-card">Total Interviews: {savedAnswers.length}</div>
-              <div className="stat-card">Average Score: Coming Soon</div>
-              <div className="stat-card">Highest Score: Coming Soon</div>
+              <div className="stat-card">Average Score: View Analytics</div>
+              <div className="stat-card">Highest Score: View Analytics</div>
               <div className="stat-card">Latest Interview: Coming Soon</div>
             </div>
 
@@ -536,10 +605,13 @@ function App() {
             <p>Made by Malcolm Felix</p>
 
             <button className="sidebar-active">🎯 Practice Interview</button>
-            <button onClick={showSavedAnswersPage}>📊 Analytics</button>
+            <button onClick={getAnalytics}>📊 Analytics</button>
+            <button onClick={showSavedAnswersPage}>💼 Saved Responses</button>
             <button>📄 Resume Review</button>
             <button>⚙️ Settings</button>
-            <button className="logout-button" onClick={logoutUser}>🚪 Logout</button>
+            <button className="logout-button" onClick={logoutUser}>
+              🚪 Logout
+            </button>
           </aside>
 
           <main className="practice-area">
@@ -549,9 +621,7 @@ function App() {
                 <p>Answer the following question and get AI-powered feedback.</p>
               </div>
 
-              <span className="role-badge">
-                Role: {formatRole(selectedRole)}
-              </span>
+              <span className="role-badge">Role: {formatRole(selectedRole)}</span>
             </div>
 
             {questions.length > 0 && (
@@ -628,48 +698,8 @@ function App() {
           </main>
         </section>
       )}
-
-      <footer className="footer">
-        <div className="footer-grid">
-          <div>
-            <h3>🤖 AI Interview</h3>
-            <p>Your AI-powered partner for interview preparation and career growth.</p>
-          </div>
-
-          <div>
-            <h4>Quick Links</h4>
-            <p>Home</p>
-            <p>Interviews</p>
-            <p>History</p>
-          </div>
-
-          <div>
-            <h4>Built With</h4>
-            <p>React • FastAPI</p>
-            <p>PostgreSQL • AI</p>
-          </div>
-
-          <div>
-            <h4>Connect</h4>
-            <a href="https://github.com/Mfelix21" target="_blank" rel="noreferrer">
-              GitHub
-            </a>
-            <br />
-            <a
-              href="https://www.linkedin.com/in/malcolm-felix-91140a250/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              LinkedIn
-            </a>
-          </div>
-        </div>
-
-        <p className="footer-bottom">Built by Malcolm Felix © 2026</p>
-      </footer>
     </div>
   );
 }
 
 export default App;
-
