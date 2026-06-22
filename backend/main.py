@@ -51,32 +51,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-questions_by_role = {
-    "software-engineer": [
-        {"category": "Behavioral", "question": "Tell me about yourself."},
-        {"category": "Technical", "question": "Explain the difference between an API and an endpoint."},
-        {"category": "Technical", "question": "What is object-oriented programming?"},
-        {"category": "Project", "question": "Describe a project where you used frontend and backend technologies."},
-        {"category": "Scenario", "question": "How would you debug an application that is not fetching data correctly?"},
-    ],
-    "data-analyst": [
-        {"category": "Behavioral", "question": "Tell me about yourself."},
-        {"category": "Technical", "question": "What is SQL used for?"},
-        {"category": "Technical", "question": "Explain the difference between a JOIN and a UNION."},
-        {"category": "Project", "question": "Describe a time you used data to make a decision."},
-        {"category": "Scenario", "question": "How would you handle missing values in a dataset?"},
-    ],
-    "data-scientist": [
-        {"category": "Behavioral", "question": "Tell me about yourself."},
-        {"category": "Technical", "question": "What is the difference between supervised and unsupervised learning?"},
-        {"category": "Technical", "question": "What is overfitting?"},
-        {"category": "Project", "question": "Describe a machine learning project you worked on."},
-        {"category": "Scenario", "question": "How would you evaluate a classification model?"},
-    ],
-}
-
-
 @app.get("/")
 def home():
     return {"message": "Career Intelligence API is running"}
@@ -84,13 +58,44 @@ def home():
 
 @app.get("/questions/{role}")
 def get_questions(role: str):
-    questions = questions_by_role.get(role)
 
-    if questions is None:
+    role_mapping = {
+        "software-engineer": "Software Engineer",
+        "data-analyst": "Data Analyst",
+        "data-scientist": "Data Scientist"
+    }
+
+    db_role = role_mapping.get(role)
+
+    if db_role is None:
         return {"error": "Role not found"}
 
-    return {"role": role, "questions": questions}
+    with engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT category, difficulty, question
+                FROM questions
+                WHERE role = :role
+                ORDER BY RANDOM()
+                LIMIT 5
+                
+            """),
+            {"role": db_role}
+        )
 
+        questions = []
+
+        for row in result:
+            questions.append({
+                "category": row.category,
+                "difficulty": row.difficulty,
+                "question": row.question
+            })
+
+    return {
+        "role": db_role,
+        "questions": questions
+    }
 
 @app.post("/ai-feedback")
 def ai_feedback(data: AnswerRequest):
