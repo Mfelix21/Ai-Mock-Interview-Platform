@@ -17,12 +17,11 @@ jobs:
       - name: Build containers
         run: docker compose build
 
-      - name: Start containers
-        run: docker compose up -d
+      #- name: Start containers
+       # run: docker compose up -d
 
       - name: Run backend tests
-        run: docker compose exec -T backend python -m pytest
+        run: docker compose run --rm backend python -m pytest
 
       - name: Stop containers
         run: docker compose down
-        
