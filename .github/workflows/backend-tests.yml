@@ -18,9 +18,7 @@ jobs:
         run: docker compose build
 
       - name: Run backend tests
-        run: docker compose run --rm -e DATABASE_URL=sqlite:///./test.db backend python -m pytest
+        run: docker compose run --rm -e DATABASE_URL=sqlite:///./test.db -e OPENAI_API_KEY=dummy-key-for-tests backend python -m pytest
 
       - name: Stop containers
         run: docker compose down
-        
-        
