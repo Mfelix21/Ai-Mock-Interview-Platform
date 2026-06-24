@@ -8,7 +8,7 @@ def test_home():
     response = client.get("/")
     print(response.json())
     assert response.status_code == 200
-    assert response.json()["message"] == "Career Intelligence API is broken"
+    assert response.json()["message"] == "Career Intelligence API is running"
 
 def test_ai_feedback_short_answer():
     payload = {
