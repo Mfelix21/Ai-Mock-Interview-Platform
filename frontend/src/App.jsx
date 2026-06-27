@@ -54,9 +54,13 @@ function App() {
       .then((data) => {
         setAuthMessage(data.message || data.error);
 
-        if (data.user_id) {
+        if (data.access_token) {
           setLoggedInUser(data);
+
+          localStorage.setItem("token", data.access_token);
+          localStorage.setItem("username", data.username);
           localStorage.setItem("user_id", data.user_id);
+
           setShowQuestions(false);
         }
       })
@@ -65,7 +69,11 @@ function App() {
 
   function logoutUser() {
     setLoggedInUser(null);
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
     localStorage.removeItem("user_id");
+
     setEmail("");
     setPassword("");
     setAuthMessage("Logged out successfully");
@@ -97,13 +105,22 @@ function App() {
       return;
     }
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Your login session expired. Please log in again.");
+      return;
+    }
+
     fetch("http://127.0.0.1:8000/submit_answers", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         role: selectedRole,
         answers: answers,
-        user_id: loggedInUser.user_id,
       }),
     })
       .then((response) => response.json())
@@ -123,13 +140,27 @@ function App() {
       return;
     }
 
-    fetch(`http://127.0.0.1:8000/answers/${loggedInUser.user_id}`)
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Your login session has expired. Please log in again.");
+      return;
+    }
+
+    fetch("http://127.0.0.1:8000/answers", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setSavedAnswers(data.saved_answers);
         setShowQuestions("saved");
       })
-      .catch((error) => console.error("Error fetching saved answers:", error));
+      .catch((error) =>
+        console.error("Error fetching saved answers:", error)
+      );
   }
 
   async function getAIFeedback(question, answer) {
@@ -175,22 +206,43 @@ function App() {
       return;
     }
 
-    const summaryResponse = await fetch(
-      `http://127.0.0.1:8000/analytics/summary/${loggedInUser.user_id}`
-    );
+    const token = localStorage.getItem("token");
 
-    const summaryData = await summaryResponse.json();
+    if (!token) {
+      alert("Your login session has expired. Please log in again.");
+      return;
+    }
 
-    const historyResponse = await fetch(
-      `http://127.0.0.1:8000/analytics/history/${loggedInUser.user_id}`
-    );
+    try {
+      const summaryResponse = await fetch(
+        "http://127.0.0.1:8000/analytics/summary",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    const historyData = await historyResponse.json();
+      const summaryData = await summaryResponse.json();
 
-    setAnalytics(summaryData);
-    setAnalyticsHistory(historyData.history);
+      const historyResponse = await fetch(
+        "http://127.0.0.1:8000/analytics/history",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    setShowQuestions("analytics");
+      const historyData = await historyResponse.json();
+
+      setAnalytics(summaryData);
+      setAnalyticsHistory(historyData.history);
+
+      setShowQuestions("analytics");
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+    }
   }
 
   function formatRole(role) {

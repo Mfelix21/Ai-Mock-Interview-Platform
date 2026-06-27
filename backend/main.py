@@ -1,9 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text
 from database import engine
-from auth import hash_password, verify_password
+from auth import hash_password, verify_password, create_access_token, get_current_user
 from dotenv import load_dotenv
 import os
 import re
@@ -27,7 +27,6 @@ class AnswerRequest(BaseModel):
 class AnswerSubmission(BaseModel):
     role: str
     answers: list[str]
-    user_id: int
     score: Optional[int] = None
     feedback: Optional[str] = None
 
@@ -51,6 +50,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def home():
     return {"message": "Career Intelligence API is running"}
@@ -58,7 +58,6 @@ def home():
 
 @app.get("/questions/{role}")
 def get_questions(role: str):
-
     role_mapping = {
         "software-engineer": "Software Engineer",
         "data-analyst": "Data Analyst",
@@ -78,7 +77,6 @@ def get_questions(role: str):
                 WHERE role = :role
                 ORDER BY RANDOM()
                 LIMIT 5
-                
             """),
             {"role": db_role}
         )
@@ -96,6 +94,7 @@ def get_questions(role: str):
         "role": db_role,
         "questions": questions
     }
+
 
 @app.post("/ai-feedback")
 def ai_feedback(data: AnswerRequest):
@@ -142,8 +141,13 @@ def ai_feedback(data: AnswerRequest):
 
 
 @app.post("/submit_answers")
-def submit_answers(data: AnswerSubmission):
+def submit_answers(
+    data: AnswerSubmission,
+    current_user: dict = Depends(get_current_user)
+):
     try:
+        user_id = current_user["user_id"]
+
         combined_answers = ""
 
         for i, answer in enumerate(data.answers):
@@ -190,7 +194,7 @@ def submit_answers(data: AnswerSubmission):
                     "answer_3": data.answers[2] if len(data.answers) > 2 else "",
                     "answer_4": data.answers[3] if len(data.answers) > 3 else "",
                     "answer_5": data.answers[4] if len(data.answers) > 4 else "",
-                    "user_id": data.user_id,
+                    "user_id": user_id,
                     "score": score,
                     "feedback": feedback_text,
                 }
@@ -209,8 +213,10 @@ def submit_answers(data: AnswerSubmission):
         }
 
 
-@app.get("/answers/{user_id}")
-def get_answers(user_id: int):
+@app.get("/answers")
+def get_answers(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+
     with engine.connect() as connection:
         result = connection.execute(
             text("""
@@ -284,15 +290,27 @@ def login(user: UserLogin):
     if not verify_password(user.password, stored_hash):
         return {"error": "Invalid email or password"}
 
+    access_token = create_access_token(
+        data={
+            "sub": result.email,
+            "user_id": result.id,
+            "username": result.username
+        }
+    )
+
     return {
-        "message": "Login successful",
+        "access_token": access_token,
+        "token_type": "bearer",
         "user_id": result.id,
-        "username": result.username
+        "username": result.username,
+        "message": "Login successful"
     }
 
 
-@app.get("/analytics/summary/{user_id}")
-def get_analytics_summary(user_id: int):
+@app.get("/analytics/summary")
+def get_analytics_summary(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+
     with engine.connect() as connection:
         result = connection.execute(
             text("""
@@ -315,8 +333,11 @@ def get_analytics_summary(user_id: int):
         "lowest_score": result.lowest_score or 0
     }
 
-@app.get("/analytics/history/{user_id}")
-def get_analytics_history(user_id: int):
+
+@app.get("/analytics/history")
+def get_analytics_history(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+
     with engine.connect() as connection:
         result = connection.execute(
             text("""
@@ -341,3 +362,8 @@ def get_analytics_history(user_id: int):
             })
 
     return {"history": history}
+
+
+@app.get("/me")
+def get_me(current_user: dict = Depends(get_current_user)):
+    return current_user
